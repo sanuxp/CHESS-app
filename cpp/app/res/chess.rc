@@ -1,0 +1,2 @@
+// Icon 1 is the one SDL uses for the window, title bar and taskbar; Explorer shows it on chess.exe.
+1 ICON "chess.ico"
