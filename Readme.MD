@@ -25,7 +25,8 @@ CHESS/
 │   ├── THEMES.md    board colours, piece sets and interface palettes, shared by all stacks
 │   ├── logo/        logo artwork, icon SVGs and how the icons are produced
 │   └── testdata/    perft.json, scenarios.json, pgn.json - shared tests every stack must pass
-├── tools/           make_icons.py: builds all app icons from the logo SVG
+├── tools/           make_icons.py (app icons from the logo SVG), run_tests.ps1 (all tests, used by the push hook)
+├── .githooks/       pre-push: runs the tests before a push
 ├── cpp/             C++ implementation (rules library, tests, SDL2 app) - see cpp/README.md
 ├── flutter/         Flutter implementation - see flutter/README.md
 └── godot/           Godot implementation - see godot/README.md
@@ -67,6 +68,15 @@ towards whoever is to move), **Themes** (board colours, piece sets, interface pa
 Press **Save PGN** at any time and choose where to put the file. Import it into
 [Lichess](https://lichess.org/paste) (analysis board, Stockfish built in), Chess.com, or a desktop GUI such as
 Arena or Scid with Stockfish. **Copy FEN** copies the current position if you only want to analyse that.
+
+## Tests before every push
+A git hook runs the existing tests before `git push` and cancels the push if one fails. It only tests what
+changed: C++ for `cpp/`, Flutter for `flutter/`, both when `docs/testdata/` changes. Enable it once per clone:
+```
+git config core.hooksPath .githooks
+```
+Run the same checks by hand with `powershell -ExecutionPolicy Bypass -File toolsun_tests.ps1 [-Cpp] [-Flutter]`
+(about 3 minutes for both). Skip once with `SKIP_PUSH_TESTS=1 git push` or `git push --no-verify`.
 
 ## Documentation
 - [`docs/PLAN.md`](docs/PLAN.md) - plan and progress record

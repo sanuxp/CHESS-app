@@ -1,0 +1,57 @@
+#!/bin/sh
+# Runs the existing tests before a push and blocks the push if they fail.
+# Only the parts being pushed are tested: C++ for changes under cpp/, Flutter for flutter/,
+# both when the shared test data (docs/testdata) or the test runner changes.
+#
+# Skip once:                SKIP_PUSH_TESTS=1 git push        (or: git push --no-verify)
+# Enable (once per clone):  git config core.hooksPath .githooks
+
+if [ -n "$SKIP_PUSH_TESTS" ]; then
+    echo "pre-push: SKIP_PUSH_TESTS set, not running tests."
+    exit 0
+fi
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+zero=0000000000000000000000000000000000000000
+run_cpp=0
+run_flutter=0
+
+# stdin: <local ref> <local sha> <remote ref> <remote sha>, one line per ref being pushed.
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ "$local_sha" = "$zero" ] && continue   # deleting a branch: nothing to test
+    if [ "$remote_sha" = "$zero" ] || ! git cat-file -e "${remote_sha}^{commit}" 2>/dev/null; then
+        changed=$(git ls-tree -r --name-only "$local_sha")          # new branch: test everything
+    else
+        changed=$(git diff --name-only "$remote_sha" "$local_sha")
+    fi
+    echo "$changed" | grep -qE '^(cpp/|docs/testdata/|tools/run_tests\.ps1)' && run_cpp=1
+    echo "$changed" | grep -qE '^(flutter/|docs/testdata/|tools/run_tests\.ps1)' && run_flutter=1
+done
+
+if [ "$run_cpp" = 0 ] && [ "$run_flutter" = 0 ]; then
+    echo "pre-push: no C++ or Flutter changes in this push, skipping tests."
+    exit 0
+fi
+
+args=""
+[ "$run_cpp" = 1 ] && args="$args -Cpp"
+[ "$run_flutter" = 1 ] && args="$args -Flutter"
+echo "pre-push: running tests ($args ) ..."
+
+if command -v powershell.exe >/dev/null 2>&1; then
+    ps=powershell.exe
+elif command -v pwsh >/dev/null 2>&1; then
+    ps=pwsh
+else
+    echo "pre-push: PowerShell not found, cannot run tests. Use 'git push --no-verify' to skip." >&2
+    exit 1
+fi
+
+# shellcheck disable=SC2086
+if ! "$ps" -NoProfile -ExecutionPolicy Bypass -File tools/run_tests.ps1 $args; then
+    echo "" >&2
+    echo "pre-push: tests failed, push cancelled. Fix them, or skip once with SKIP_PUSH_TESTS=1 git push." >&2
+    exit 1
+fi
+exit 0
