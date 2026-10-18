@@ -1,0 +1,155 @@
+{
+  "description": "Rule scenarios. Start from 'fen' (or 'startpos'), play 'moves' (UCI, e.g. e2e4 / e7e8q) which must all be legal, then check every key in 'expect'. status is one of Playing, Check, Checkmate, Stalemate, DrawFiftyMove, DrawRepetition, DrawInsufficient. legalCount, legalContains, legalNotContains and fen are optional.",
+  "scenarios": [
+    {
+      "name": "Fool's mate",
+      "fen": "startpos",
+      "moves": ["f2f3", "e7e5", "g2g4", "d8h4"],
+      "expect": { "status": "Checkmate", "result": "0-1", "legalCount": 0 }
+    },
+    {
+      "name": "Scholar's mate",
+      "fen": "startpos",
+      "moves": ["e2e4", "e7e5", "d1h5", "b8c6", "f1c4", "g8f6", "h5f7"],
+      "expect": { "status": "Checkmate", "result": "1-0", "legalCount": 0 }
+    },
+    {
+      "name": "Check with a single reply",
+      "fen": "startpos",
+      "moves": ["e2e4", "f7f6", "d1h5"],
+      "expect": { "status": "Check", "result": "*", "legalCount": 1, "legalContains": ["g7g6"] }
+    },
+    {
+      "name": "Stalemate",
+      "fen": "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
+      "moves": [],
+      "expect": { "status": "Stalemate", "result": "1/2-1/2", "legalCount": 0 }
+    },
+    {
+      "name": "Castling available both sides, and result position",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+      "moves": [],
+      "expect": { "status": "Playing", "legalContains": ["e1g1", "e1c1"] }
+    },
+    {
+      "name": "Kingside castle moves the rook and drops white rights",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+      "moves": ["e1g1"],
+      "expect": { "status": "Playing", "fen": "r3k2r/8/8/8/8/8/8/R4RK1 b kq - 1 1" }
+    },
+    {
+      "name": "Queenside castle moves the rook and drops black rights",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1",
+      "moves": ["e8c8"],
+      "expect": { "status": "Playing", "fen": "2kr3r/8/8/8/8/8/8/R3K2R w KQ - 1 2" }
+    },
+    {
+      "name": "Cannot castle through an attacked square",
+      "fen": "r3k2r/8/8/8/8/8/5r2/R3K2R w KQkq - 0 1",
+      "moves": [],
+      "expect": { "status": "Playing", "legalNotContains": ["e1g1"], "legalContains": ["e1c1"] }
+    },
+    {
+      "name": "Cannot castle out of check",
+      "fen": "r3k2r/8/8/8/8/8/4r3/R3K2R w KQkq - 0 1",
+      "moves": [],
+      "expect": { "status": "Check", "legalNotContains": ["e1g1", "e1c1"] }
+    },
+    {
+      "name": "Cannot castle after the rook has moved",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+      "moves": ["h1h2", "a8a7", "h2h1", "a7a8"],
+      "expect": { "status": "Playing", "legalNotContains": ["e1g1"], "legalContains": ["e1c1"] }
+    },
+    {
+      "name": "En passant capture",
+      "fen": "startpos",
+      "moves": ["e2e4", "a7a6", "e4e5", "d7d5"],
+      "expect": { "status": "Playing", "legalContains": ["e5d6"] }
+    },
+    {
+      "name": "En passant result position",
+      "fen": "startpos",
+      "moves": ["e2e4", "a7a6", "e4e5", "d7d5", "e5d6"],
+      "expect": { "status": "Playing", "fen": "rnbqkbnr/1pp1pppp/p2P4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 3" }
+    },
+    {
+      "name": "En passant expires after one move",
+      "fen": "startpos",
+      "moves": ["e2e4", "a7a6", "e4e5", "d7d5", "h2h3", "a6a5"],
+      "expect": { "status": "Playing", "legalNotContains": ["e5d6"] }
+    },
+    {
+      "name": "En passant illegal when it exposes the king along the rank",
+      "fen": "7k/8/8/KPp4r/8/8/8/8 w - c6 0 1",
+      "moves": [],
+      "expect": { "status": "Playing", "legalNotContains": ["b5c6"], "legalContains": ["b5b6"] }
+    },
+    {
+      "name": "Promotion offers four pieces",
+      "fen": "8/P6k/8/8/8/8/8/K7 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "Playing", "legalCount": 7, "legalContains": ["a7a8q", "a7a8r", "a7a8b", "a7a8n"], "legalNotContains": ["a7a8"] }
+    },
+    {
+      "name": "Promotion to queen result position",
+      "fen": "8/P6k/8/8/8/8/8/K7 w - - 0 1",
+      "moves": ["a7a8q"],
+      "expect": { "status": "Playing", "fen": "Q7/7k/8/8/8/8/8/K7 b - - 0 1" }
+    },
+    {
+      "name": "Pinned piece cannot move off the pin line",
+      "fen": "4r2k/8/8/8/8/8/4B3/4K3 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "Playing", "legalNotContains": ["e2d3", "e2f3"] }
+    },
+    {
+      "name": "Fifty-move rule draw",
+      "fen": "8/8/8/4k3/8/8/4K3/7R w - - 99 80",
+      "moves": ["h1h2"],
+      "expect": { "status": "DrawFiftyMove", "result": "1/2-1/2" }
+    },
+    {
+      "name": "Threefold repetition",
+      "fen": "startpos",
+      "moves": ["g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8"],
+      "expect": { "status": "DrawRepetition", "result": "1/2-1/2" }
+    },
+    {
+      "name": "King versus king is a draw",
+      "fen": "8/8/8/4k3/8/8/4K3/8 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "DrawInsufficient" }
+    },
+    {
+      "name": "King and bishop versus king is a draw",
+      "fen": "8/8/8/4k3/8/8/4K3/6B1 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "DrawInsufficient" }
+    },
+    {
+      "name": "King and knight versus king is a draw",
+      "fen": "8/8/8/4k3/8/8/4K3/6N1 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "DrawInsufficient" }
+    },
+    {
+      "name": "Bishops on the same colour is a draw",
+      "fen": "8/8/8/2b1k3/8/8/4K3/2B5 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "DrawInsufficient" }
+    },
+    {
+      "name": "Bishops on opposite colours is not a draw",
+      "fen": "8/8/8/2b1k3/8/8/4K3/5B2 w - - 0 1",
+      "moves": [],
+      "expect": { "status": "Playing" }
+    },
+    {
+      "name": "King and rook versus king is not a draw",
+      "fen": "8/8/8/4k3/8/8/4K3/7R w - - 0 1",
+      "moves": [],
+      "expect": { "status": "Playing" }
+    }
+  ]
+}

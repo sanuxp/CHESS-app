@@ -1,0 +1,73 @@
+{
+  "description": "Standard algebraic notation (SAN) and PGN export. 'moves' are UCI; 'san' is what the game must record for each move, in order. Each SAN must also parse back to the same move.",
+  "san_cases": [
+    {
+      "name": "Scholar's mate with capture and mate mark",
+      "fen": "startpos",
+      "moves": ["e2e4", "e7e5", "d1h5", "b8c6", "f1c4", "g8f6", "h5f7"],
+      "san": ["e4", "e5", "Qh5", "Nc6", "Bc4", "Nf6", "Qxf7#"]
+    },
+    {
+      "name": "Castling both sides",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+      "moves": ["e1g1", "e8c8"],
+      "san": ["O-O", "O-O-O"]
+    },
+    {
+      "name": "En passant",
+      "fen": "startpos",
+      "moves": ["e2e4", "a7a6", "e4e5", "d7d5", "e5d6"],
+      "san": ["e4", "a6", "e5", "d5", "exd6"]
+    },
+    {
+      "name": "Disambiguation by file",
+      "fen": "4k3/8/8/8/8/8/4K3/R6R w - - 0 1",
+      "moves": ["a1d1"],
+      "san": ["Rad1"]
+    },
+    {
+      "name": "Disambiguation by file (second rook)",
+      "fen": "4k3/8/8/8/8/8/4K3/R6R w - - 0 1",
+      "moves": ["h1d1"],
+      "san": ["Rhd1"]
+    },
+    {
+      "name": "Disambiguation by rank",
+      "fen": "4k3/8/8/8/R7/8/4K3/R7 w - - 0 1",
+      "moves": ["a1a2"],
+      "san": ["R1a2"]
+    },
+    {
+      "name": "Disambiguation by rank (other rook)",
+      "fen": "4k3/8/8/8/R7/8/4K3/R7 w - - 0 1",
+      "moves": ["a4a2"],
+      "san": ["R4a2"]
+    },
+    {
+      "name": "Promotion with check",
+      "fen": "7k/P7/8/8/8/8/8/K7 w - - 0 1",
+      "moves": ["a7a8q"],
+      "san": ["a8=Q+"]
+    },
+    {
+      "name": "Under-promotion",
+      "fen": "7k/P7/8/8/8/8/8/K7 w - - 0 1",
+      "moves": ["a7a8n"],
+      "san": ["a8=N"]
+    }
+  ],
+  "pgn_cases": [
+    {
+      "name": "Fool's mate full PGN with default headers",
+      "fen": "startpos",
+      "moves": ["f2f3", "e7e5", "g2g4", "d8h4"],
+      "pgn": "[Event \"Casual Game\"]\n[Site \"Local\"]\n[Date \"????.??.??\"]\n[Round \"-\"]\n[White \"White\"]\n[Black \"Black\"]\n[Result \"0-1\"]\n\n1. f3 e5 2. g4 Qh4# 0-1\n"
+    },
+    {
+      "name": "Unfinished game uses * and a custom start gets SetUp/FEN tags with black to move first",
+      "fen": "4k3/8/8/8/8/8/4K3/R7 b - - 0 7",
+      "moves": ["e8d7"],
+      "pgn": "[Event \"Casual Game\"]\n[Site \"Local\"]\n[Date \"????.??.??\"]\n[Round \"-\"]\n[White \"White\"]\n[Black \"Black\"]\n[Result \"*\"]\n[SetUp \"1\"]\n[FEN \"4k3/8/8/8/8/8/4K3/R7 b - - 0 7\"]\n\n7... Kd7 *\n"
+    }
+  ]
+}

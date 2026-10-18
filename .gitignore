@@ -1,0 +1,27 @@
+# Build output
+build/
+out/
+cmake-build-*/
+
+# IDEs
+.vs/
+.idea/
+.vscode/
+
+# Flutter / Dart
+.dart_tool/
+flutter/build/
+.flutter-plugins*
+
+# Godot
+.godot/
+*.translation
+
+# Saved games produced while testing
+*.pgn
+!docs/testdata/*.pgn
+
+# Logo working files: huge originals and generated images (recreate with tools/make_icons.py)
+docs/logo/source/
+docs/logo/final/
+docs/logo/proposals.html

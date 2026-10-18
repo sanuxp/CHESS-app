@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="62%" r="62%">
+      <stop offset="0" stop-color="#ffc766"/>
+      <stop offset="0.35" stop-color="#e08a1e"/>
+      <stop offset="0.75" stop-color="#6b3d0c"/>
+      <stop offset="1" stop-color="#1a0f05"/>
+    </radialGradient>
+    <linearGradient id="pawn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd98a"/>
+      <stop offset="0.5" stop-color="#d9962e"/>
+      <stop offset="1" stop-color="#7a4a10"/>
+    </linearGradient>
+    <clipPath id="disc"><circle cx="256" cy="256" r="244"/></clipPath>
+  </defs>
+
+  <circle cx="256" cy="256" r="244" fill="url(#glow)"/>
+
+  <g clip-path="url(#disc)">
+    <!-- queen shadow on the wall -->
+    <g transform="translate(71,20) scale(3.7)" fill="#1a0f05" opacity="0.93">
+      <circle cx="22" cy="22" r="5"/><circle cx="36" cy="16" r="5"/><circle cx="50" cy="13" r="5.5"/>
+      <circle cx="64" cy="16" r="5"/><circle cx="78" cy="22" r="5"/>
+      <polygon points="22,24 32,50 36,26 44,48 50,22 56,48 64,26 68,50 78,24 72,74 28,74"/>
+      <rect x="28" y="74" width="44" height="6"/><rect x="24" y="80" width="52" height="10"/>
+    </g>
+
+    <!-- floor -->
+    <rect x="0" y="396" width="512" height="120" fill="#120a04"/>
+    <g fill="#2e1d0a">
+      <polygon points="0,404 120,404 90,444 -40,444"/><polygon points="240,404 360,404 360,444 210,444"/>
+      <polygon points="480,404 600,404 640,444 450,444"/>
+      <polygon points="120,444 250,444 220,512 60,512"/><polygon points="380,444 510,444 540,512 350,512"/>
+    </g>
+    <ellipse cx="256" cy="418" rx="70" ry="9" fill="#ffb347" opacity="0.35"/>
+
+    <!-- pawn -->
+    <g transform="translate(111,149) scale(2.9)" stroke="#2a1706" stroke-width="2.4" stroke-linejoin="round" fill="url(#pawn)">
+      <circle cx="50" cy="30" r="12"/>
+      <rect x="38" y="40" width="24" height="6"/>
+      <polygon points="43,46 57,46 65,76 35,76"/>
+      <rect x="28" y="76" width="44" height="14"/>
+    </g>
+  </g>
+
+  <circle cx="256" cy="256" r="244" fill="none" stroke="#e8a845" stroke-width="5"/>
+</svg>
