@@ -10,7 +10,7 @@ namespace {
 
 struct Glyph {
     char c;
-    uint8_t rows[7];  // 5 bits per row, bit 4 = leftmost pixel
+    uint8_t rows[9];  // 5 bits per row, bit 4 = leftmost pixel; rows 7-8 are descenders (g j p q y)
 };
 
 const Glyph kGlyphs[] = {
@@ -62,13 +62,50 @@ const Glyph kGlyphs[] = {
     {'=', {0, 0, 0b11111, 0, 0b11111, 0, 0}},
     {'<', {0b00010, 0b00100, 0b01000, 0b10000, 0b01000, 0b00100, 0b00010}},
     {'>', {0b01000, 0b00100, 0b00010, 0b00001, 0b00010, 0b00100, 0b01000}},
+    {'a', {0, 0, 0b01110, 0b00001, 0b01111, 0b10001, 0b01111, 0, 0}},
+    {'b', {0b10000, 0b10000, 0b10110, 0b11001, 0b10001, 0b10001, 0b11110, 0, 0}},
+    {'c', {0, 0, 0b01110, 0b10001, 0b10000, 0b10001, 0b01110, 0, 0}},
+    {'d', {0b00001, 0b00001, 0b01101, 0b10011, 0b10001, 0b10001, 0b01111, 0, 0}},
+    {'e', {0, 0, 0b01110, 0b10001, 0b11111, 0b10000, 0b01110, 0, 0}},
+    {'f', {0b00110, 0b01001, 0b01000, 0b11100, 0b01000, 0b01000, 0b01000, 0, 0}},
+    {'g', {0, 0, 0b01111, 0b10001, 0b10001, 0b01111, 0b00001, 0b10001, 0b01110}},
+    {'h', {0b10000, 0b10000, 0b10110, 0b11001, 0b10001, 0b10001, 0b10001, 0, 0}},
+    {'i', {0b00100, 0, 0b01100, 0b00100, 0b00100, 0b00100, 0b01110, 0, 0}},
+    {'j', {0b00010, 0, 0b00110, 0b00010, 0b00010, 0b00010, 0b00010, 0b10010, 0b01100}},
+    {'k', {0b10000, 0b10000, 0b10010, 0b10100, 0b11000, 0b10100, 0b10010, 0, 0}},
+    {'l', {0b01100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b01110, 0, 0}},
+    {'m', {0, 0, 0b11010, 0b10101, 0b10101, 0b10101, 0b10101, 0, 0}},
+    {'n', {0, 0, 0b10110, 0b11001, 0b10001, 0b10001, 0b10001, 0, 0}},
+    {'o', {0, 0, 0b01110, 0b10001, 0b10001, 0b10001, 0b01110, 0, 0}},
+    {'p', {0, 0, 0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000}},
+    {'q', {0, 0, 0b01111, 0b10001, 0b10001, 0b01111, 0b00001, 0b00001, 0b00001}},
+    {'r', {0, 0, 0b10110, 0b11001, 0b10000, 0b10000, 0b10000, 0, 0}},
+    {'s', {0, 0, 0b01111, 0b10000, 0b01110, 0b00001, 0b11110, 0, 0}},
+    {'t', {0b01000, 0b01000, 0b11100, 0b01000, 0b01000, 0b01001, 0b00110, 0, 0}},
+    {'u', {0, 0, 0b10001, 0b10001, 0b10001, 0b10011, 0b01101, 0, 0}},
+    {'v', {0, 0, 0b10001, 0b10001, 0b10001, 0b01010, 0b00100, 0, 0}},
+    {'w', {0, 0, 0b10001, 0b10001, 0b10101, 0b10101, 0b01010, 0, 0}},
+    {'x', {0, 0, 0b10001, 0b01010, 0b00100, 0b01010, 0b10001, 0, 0}},
+    {'y', {0, 0, 0b10001, 0b10001, 0b10001, 0b01111, 0b00001, 0b10001, 0b01110}},
+    {'z', {0, 0, 0b11111, 0b00010, 0b00100, 0b01000, 0b11111, 0, 0}},
+    {'%', {0b11001, 0b11010, 0b00010, 0b00100, 0b01000, 0b01011, 0b10011, 0, 0}},
+    {'*', {0, 0b00100, 0b10101, 0b01110, 0b10101, 0b00100, 0, 0, 0}},
+    {'(', {0b00010, 0b00100, 0b01000, 0b01000, 0b01000, 0b00100, 0b00010, 0, 0}},
+    {')', {0b01000, 0b00100, 0b00010, 0b00010, 0b00010, 0b00100, 0b01000, 0, 0}},
     {'?', {0b01110, 0b10001, 0b00001, 0b00010, 0b00100, 0, 0b00100}},
 };
 
-const Glyph& glyphFor(char c) {
-    char up = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+// `exact` keeps lower-case letters (chess notation such as "bxc3" needs them); otherwise text is drawn upper-case.
+const Glyph& glyphFor(char c, bool exact) {
+    char want = exact ? c : static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     for (const Glyph& g : kGlyphs) {
-        if (g.c == up) return g;
+        if (g.c == want) return g;
+    }
+    if (exact) {  // no lower-case glyph for this character: try the upper-case one
+        char up = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        for (const Glyph& g : kGlyphs) {
+            if (g.c == up) return g;
+        }
     }
     return kGlyphs[sizeof(kGlyphs) / sizeof(kGlyphs[0]) - 1];  // '?'
 }
@@ -82,14 +119,16 @@ int textWidth(const std::string& text, int scale) {
     return text.empty() ? 0 : static_cast<int>(text.size()) * advance(scale) - scale;
 }
 
-void draw(SDL_Renderer* r, const std::string& text, int x, int y, int scale, SDL_Color color) {
+namespace {
+
+void drawImpl(SDL_Renderer* r, const std::string& text, int x, int y, int scale, SDL_Color color, bool exact) {
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(r, color.r, color.g, color.b, color.a);
     std::vector<SDL_Rect> rects;
     int penX = x;
     for (char c : text) {
-        const Glyph& g = glyphFor(c);
-        for (int row = 0; row < 7; ++row) {
+        const Glyph& g = glyphFor(c, exact);
+        for (int row = 0; row < 9; ++row) {
             for (int col = 0; col < 5; ++col) {
                 if (g.rows[row] & (1 << (4 - col))) {
                     rects.push_back(SDL_Rect{penX + col * scale, y + row * scale, scale, scale});
@@ -101,8 +140,8 @@ void draw(SDL_Renderer* r, const std::string& text, int x, int y, int scale, SDL
     if (!rects.empty()) SDL_RenderFillRects(r, rects.data(), static_cast<int>(rects.size()));
 }
 
-int drawWrapped(SDL_Renderer* r, const std::string& text, int x, int y, int maxWidth, int scale, SDL_Color color,
-                bool centered) {
+int drawWrappedImpl(SDL_Renderer* r, const std::string& text, int x, int y, int maxWidth, int scale, SDL_Color color,
+                    bool centered, bool exact) {
     std::vector<std::string> lines;
     std::string line, word;
     auto flushWord = [&]() {
@@ -126,10 +165,30 @@ int drawWrapped(SDL_Renderer* r, const std::string& text, int x, int y, int maxW
     int cy = y;
     for (const std::string& l : lines) {
         int lx = centered ? x + (maxWidth - textWidth(l, scale)) / 2 : x;
-        draw(r, l, lx, cy, scale, color);
+        drawImpl(r, l, lx, cy, scale, color, exact);
         cy += lineHeight(scale);
     }
     return cy - y;
+}
+
+}  // namespace
+
+void draw(SDL_Renderer* r, const std::string& text, int x, int y, int scale, SDL_Color color) {
+    drawImpl(r, text, x, y, scale, color, false);
+}
+
+void drawExact(SDL_Renderer* r, const std::string& text, int x, int y, int scale, SDL_Color color) {
+    drawImpl(r, text, x, y, scale, color, true);
+}
+
+int drawWrapped(SDL_Renderer* r, const std::string& text, int x, int y, int maxWidth, int scale, SDL_Color color,
+                bool centered) {
+    return drawWrappedImpl(r, text, x, y, maxWidth, scale, color, centered, false);
+}
+
+int drawWrappedExact(SDL_Renderer* r, const std::string& text, int x, int y, int maxWidth, int scale, SDL_Color color,
+                     bool centered) {
+    return drawWrappedImpl(r, text, x, y, maxWidth, scale, color, centered, true);
 }
 
 }  // namespace font

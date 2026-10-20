@@ -41,6 +41,14 @@ int main(int argc, char** argv) {
                     opt.ui = std::atoi(argv[++i]);
                 } else if (std::strcmp(argv[i], "--settings") == 0) {
                     opt.settings = true;
+                } else if (std::strcmp(argv[i], "--review") == 0 && i + 1 < argc) {
+                    opt.reviewSan = argv[++i];
+                } else if (std::strcmp(argv[i], "--review-setup") == 0) {
+                    opt.reviewSetup = true;
+                } else if (std::strcmp(argv[i], "--depth") == 0 && i + 1 < argc) {
+                    opt.reviewDepth = std::atoi(argv[++i]);
+                } else if (std::strcmp(argv[i], "--cursor") == 0 && i + 1 < argc) {
+                    opt.cursor = std::atoi(argv[++i]);
                 } else if (std::strcmp(argv[i], "--flip") == 0) {
                     opt.flip = true;
                 }

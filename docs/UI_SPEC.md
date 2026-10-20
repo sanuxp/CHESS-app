@@ -66,3 +66,19 @@ each move, for two people sharing one screen.
 ## Save PGN
 Desktop opens the system save dialog with a name like `chess_YYYY-MM-DD_HHMM.pgn`. Mobile writes into
 the app's documents folder (and should offer the system share sheet where the stack supports it).
+
+## Game review screen
+Opened from the side panel's **Review** button; replaces the board screen until **Back**.
+- **Setup card**: what is being reviewed ("the current game: 33 moves" or a file name), a depth choice (Quick 12,
+  Standard 16 = default, Deep 20), **Start review**, **Open a PGN file**, **Back**. A progress bar and **Cancel** while
+  the engine works; an error box (with how to install Stockfish) if it cannot run.
+- **Results**: the board (read-only) with the played move highlighted, a coloured **badge** with the move's mark in its
+  destination square corner and, when the engine preferred another move, a green **arrow** for it (toggle). Beside or
+  below it: Back / Flip / Arrow / Save PGN; White and Black **accuracy**; the **opening** name; an **evaluation graph**
+  (White's winning chance, marks on brilliant, great, mistake, miss and blunder moves, cursor line, click to jump);
+  the selected move with its label, the engine's better move, evaluation and accuracy; **<< < > >>** buttons; and the
+  **move list** (number, White and Black move with a badge each, scrolls, keeps the selection visible).
+- Keys: Left/Right step, Home/End jump, `F` flips, `Esc` goes back (cancels a running review first).
+- Badge colours: Brilliant teal `!!`, Great blue `!`, Best green star, Excellent green `+`/thumb, Good pale green check,
+  Book brown book, Forced grey arrow, Inaccuracy yellow `?!`, Mistake orange `?`, Miss red `X`, Blunder red `??`.
+- Rules for the labels are in `REVIEW.md`; screenshots in `screenshots/`.

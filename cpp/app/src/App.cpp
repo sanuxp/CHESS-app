@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "Platform.hpp"
+#include "ReviewUi.hpp"
 #include "Renderer.hpp"
 #include "chess/Pgn.hpp"
 
@@ -75,6 +76,9 @@ void App::run() {
                     break;
                 }
                 case SDL_KEYDOWN: onKey(e.key.keysym.sym); break;
+                case SDL_MOUSEWHEEL:
+                    if (st_.review) reviewWheel(st_, e.wheel.y);
+                    break;
                 default: break;
             }
         }
@@ -105,6 +109,7 @@ void App::toWindowPixels(int& x, int& y) const {
 
 void App::update(double dt) {
     st_.toastAge += dt;
+    if (st_.review) st_.review->poll();
     if (st_.anim.active) {
         st_.anim.elapsed += dt;
         if (st_.anim.elapsed >= st_.anim.duration) {
@@ -122,6 +127,10 @@ void App::say(const std::string& text) {
 // ---------------------------------------------------------------- input
 
 void App::onPress(int x, int y) {
+    if (st_.review) {
+        handleReview(reviewPress(st_, x, y));
+        return;
+    }
     if (st_.settingsOpen) {
         onSettingsPress(x, y);
         return;
@@ -219,6 +228,10 @@ void App::applySettings(bool redrawPieces) {
 }
 
 void App::onMove(int x, int y) {
+    if (st_.review) {
+        reviewHover(st_, x, y);
+        return;
+    }
     st_.hoverRow = -1;
     if (st_.settingsOpen) {
         const SettingsLayout S = settingsLayout(st_.layout);
@@ -267,6 +280,7 @@ void App::onRelease(int x, int y) {
 
 void App::onButton(int id) {
     switch (id) {
+        case BtnReview: openReview(); break;
         case BtnNewGame: newGame(); break;
         case BtnUndo: undoMove(); break;
         case BtnSavePgn: savePgn(); break;
@@ -284,6 +298,10 @@ void App::onButton(int id) {
 }
 
 void App::onKey(SDL_Keycode key) {
+    if (st_.review) {
+        handleReview(reviewKey(st_, key));
+        return;
+    }
     if (st_.settingsOpen) {
         if (key == SDLK_ESCAPE || key == SDLK_t) st_.settingsOpen = false;
         return;
@@ -299,6 +317,44 @@ void App::onKey(SDL_Keycode key) {
 }
 
 // ---------------------------------------------------------------- game actions
+
+void App::openReview() {
+    ReviewSession::setBaseDirectory(SDL_GetBasePath() ? SDL_GetBasePath() : "");
+    st_.review = std::make_unique<ReviewSession>();
+    st_.review->setGame(st_.game, "the current game");
+    clearSelection();
+    st_.promotionOpen = false;
+}
+
+void App::handleReview(ReviewAction action) {
+    if (!st_.review) return;
+    switch (action) {
+        case ReviewAction::Close: st_.review.reset(); break;
+        case ReviewAction::SavePgn: {
+            platform::SaveResult res = platform::savePgn(window_, st_.review->exportPgn());
+            if (res.cancelled) say("SAVE CANCELLED");
+            else if (res.saved) {
+                size_t slash = res.path.find_last_of("/\\");
+                say("SAVED " + (slash == std::string::npos ? res.path : res.path.substr(slash + 1)));
+            } else say("COULD NOT SAVE: " + res.error);
+            break;
+        }
+        case ReviewAction::OpenPgn: {
+            platform::OpenResult res = platform::openPgn(window_);
+            if (!res.supported) {
+                st_.review->error = "Opening a PGN file is only available on Windows for now.";
+                st_.review->phase = ReviewSession::Phase::Error;
+            } else if (!res.error.empty()) {
+                st_.review->error = res.error;
+                st_.review->phase = ReviewSession::Phase::Error;
+            } else if (res.opened) {
+                st_.review->loadPgn(res.text, res.name);
+            }
+            break;
+        }
+        case ReviewAction::None: break;
+    }
+}
 
 void App::selectSquare(Square sq) {
     st_.selected = sq;
@@ -463,6 +519,32 @@ bool App::screenshot(const ShotOptions& o) {
         st_.flipMode = o.flip;
         updateFlip();
         st_.layout = computeLayout(o.width, o.height);
+        if (!o.reviewSan.empty()) {
+            Game g;
+            std::istringstream tokens(o.reviewSan);
+            std::string san;
+            while (tokens >> san) {
+                if (!g.makeMoveSAN(san)) {
+                    SDL_Log("illegal move in --review: %s", san.c_str());
+                    ok = false;
+                    break;
+                }
+            }
+            ReviewSession::setBaseDirectory(SDL_GetBasePath() ? SDL_GetBasePath() : "");
+            st_.review = std::make_unique<ReviewSession>();
+            st_.review->setGame(g, "the test game");
+            st_.review->depthIndex = std::clamp(o.reviewDepth, 0, 2);
+            if (ok && !o.reviewSetup) {
+                st_.review->start();
+                while (st_.review->phase == ReviewSession::Phase::Running) {
+                    SDL_Delay(50);
+                    st_.review->poll();
+                }
+                if (st_.review->phase == ReviewSession::Phase::Error) SDL_Log("review failed: %s", st_.review->error.c_str());
+                if (o.cursor >= 0) st_.review->goTo(o.cursor);
+                reviewEnsureVisible(st_);
+            }
+        }
         if (!o.select.empty()) {
             Square sq = squareFromName(o.select);
             if (sq != NoSquare) selectSquare(sq);
@@ -599,6 +681,64 @@ bool App::selfTest() {
         check(st_.settings.pieces == 0 && st_.settings.hints, "reset restores defaults");
         clickRect(S.done, 5);
         check(!st_.settingsOpen, "done closes the settings view");
+    }
+
+    // ---- game review screen
+    {
+        onButton(BtnReview);
+        check(st_.review && st_.review->phase == ReviewSession::Phase::Setup, "REVIEW opens the setup card");
+        check(st_.review && st_.review->moveCount() > 0, "the current game is loaded for review");
+        ReviewLayout R = computeReviewLayout(st_.layout, *st_.review);
+
+        onPress(R.depth[0].x + 2, R.depth[0].y + 2);
+        check(st_.review->depthIndex == 0, "the quick depth can be chosen");
+        onPress(R.depth[2].x + 2, R.depth[2].y + 2);
+        check(st_.review->depthIndex == 2, "the deep depth can be chosen");
+        st_.review->depthIndex = 0;
+
+        // A short game to review: fool's mate.
+        Game g;
+        for (const char* san : {"f3", "e5", "g4", "Qh4#"}) g.makeMoveSAN(san);
+        st_.review->setGame(g, "fool's mate");
+        st_.review->depthIndex = 0;
+        ReviewSession::setBaseDirectory(SDL_GetBasePath() ? SDL_GetBasePath() : "");
+
+        if (findEnginePath().empty()) {
+            onPress(R.btnStart.x + 2, R.btnStart.y + 2);
+            for (int i = 0; i < 400 && st_.review->phase == ReviewSession::Phase::Running; ++i) {
+                SDL_Delay(25);
+                st_.review->poll();
+            }
+            check(st_.review->phase == ReviewSession::Phase::Error && st_.review->error.find("Stockfish") != std::string::npos,
+                  "without Stockfish the review explains how to install it");
+        } else {
+            onPress(R.btnStart.x + 2, R.btnStart.y + 2);
+            check(st_.review->phase == ReviewSession::Phase::Running, "START begins the review");
+            for (int i = 0; i < 2400 && st_.review->phase == ReviewSession::Phase::Running; ++i) {
+                SDL_Delay(25);
+                st_.review->poll();
+            }
+            check(st_.review->phase == ReviewSession::Phase::Done && st_.review->review, "the review finishes");
+            if (st_.review->review) {
+                const auto& plies = st_.review->review->plies;
+                check(plies.size() == 4 && plies[2].label == MoveLabel::Blunder, "g4 is a blunder");
+                check(plies.size() == 4 && plies[3].label == MoveLabel::Best, "Qh4# is best");
+                R = computeReviewLayout(st_.layout, *st_.review);
+                onPress(R.nav[2].x + 2, R.nav[2].y + 2);
+                check(st_.review->cursor == 1, "the next button steps forward");
+                std::int32_t lastRow = R.list.y + 2;
+                onPress(R.list.x + R.fontScale * 6 * 3 + 8 + (R.list.w - R.fontScale * 6 * 3 - 4 - 2 * R.fontScale) / 2 + 4, lastRow + 1 * R.rowHeight);
+                check(st_.review->cursor == 4 || st_.review->cursor == 3, "clicking a move in the list selects it");
+                reviewKey(st_, SDLK_HOME);
+                check(st_.review->cursor == 0, "Home goes to the start");
+                reviewKey(st_, SDLK_END);
+                check(st_.review->cursor == 4, "End goes to the last move");
+                std::string pgn = st_.review->exportPgn();
+                check(pgn.find("$4") != std::string::npos && pgn.find("[%eval") != std::string::npos, "the reviewed PGN has glyphs and evaluations");
+            }
+        }
+        handleReview(ReviewAction::Close);
+        check(!st_.review, "BACK closes the review");
     }
 
     logLine(failures == 0 ? "ALL SELF-TESTS PASSED" : "SELF-TESTS FAILED");

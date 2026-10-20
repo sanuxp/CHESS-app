@@ -3,6 +3,7 @@ add_library(chess_core STATIC
     src/MoveGen.cpp
     src/Game.cpp
     src/Pgn.cpp
+    src/PgnImport.cpp
 )
 target_include_directories(chess_core PUBLIC include)
 target_compile_features(chess_core PUBLIC cxx_std_17)

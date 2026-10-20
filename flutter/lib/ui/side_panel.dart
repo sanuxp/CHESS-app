@@ -14,6 +14,7 @@ class SidePanel extends StatelessWidget {
   final bool landscape;
   final VoidCallback onSavePgn;
   final VoidCallback onCopyFen;
+  final VoidCallback onReview;
 
   const SidePanel({
     super.key,
@@ -21,6 +22,7 @@ class SidePanel extends StatelessWidget {
     required this.landscape,
     required this.onSavePgn,
     required this.onCopyFen,
+    required this.onReview,
   });
 
   @override
@@ -40,6 +42,7 @@ class SidePanel extends StatelessWidget {
           _PanelButton('COPY FEN', onCopyFen, pal, key: const ValueKey('btn-fen')),
           _PanelButton(controller.flipMode ? 'FLIP: ON' : 'FLIP: OFF', controller.toggleFlip, pal, key: const ValueKey('btn-flip')),
           _PanelButton('THEMES', () => showThemesDialog(context, controller.settings), pal, key: const ValueKey('btn-themes')),
+          _PanelButton('REVIEW', onReview, pal, key: const ValueKey('btn-review')),
         ];
 
         final turn = Row(children: [
@@ -97,7 +100,7 @@ class SidePanel extends StatelessWidget {
                   toast,
                   LayoutBuilder(builder: (context, box) {
                     const gap = 8.0;
-                    final w = (box.maxWidth - 2 * gap) / 3;
+                    final w = (box.maxWidth - 3 * gap) / 4;
                     return Wrap(spacing: gap, runSpacing: gap, children: [
                       for (final b in buttons) SizedBox(width: w, child: b),
                     ]);

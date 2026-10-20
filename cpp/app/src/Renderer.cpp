@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "Font.hpp"
+#include "ReviewUi.hpp"
 
 using namespace chess;
 
@@ -353,11 +354,16 @@ const char* buttonLabel(int id, const State& st) {
         case BtnCopyFen: return "COPY FEN";
         case BtnFlip: return st.flipMode ? "FLIP: ON" : "FLIP: OFF";
         case BtnThemes: return "THEMES";
+        case BtnReview: return "REVIEW";
         default: return "";
     }
 }
 
 void drawFrame(SDL_Renderer* r, const State& st, const PieceArt& art) {
+    if (st.review) {
+        drawReview(r, st, art);
+        return;
+    }
     setColor(r, st.settings.uiTheme().background);
     SDL_RenderClear(r);
     drawBoard(r, st, art);

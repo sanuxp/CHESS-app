@@ -5,6 +5,7 @@
 #include <string>
 
 #include "PieceArt.hpp"
+#include "ReviewUi.hpp"
 #include "State.hpp"
 
 // Options for the hidden "--screenshot" mode used to check the UI without opening a window.
@@ -19,6 +20,10 @@ struct ShotOptions {
     int board = -1, pieces = -1, ui = -1;  // theme indices; -1 keeps the default
     bool settings = false;                 // show the settings view
     bool undoLast = false;  // freeze an undo animation instead
+    std::string reviewSan;  // show the game review of these SAN moves (runs Stockfish and waits for it)
+    bool reviewSetup = false;  // ... but stop at the setup card
+    int reviewDepth = 0;       // 0 quick, 1 standard, 2 deep
+    int cursor = -1;           // move to show in the review
 };
 
 class App {
@@ -41,6 +46,8 @@ private:
     void changeSetting(int row, int delta);
     void applySettings(bool redrawPieces);
     void toWindowPixels(int& x, int& y) const;
+    void openReview();
+    void handleReview(ReviewAction action);
 
     // Game actions
     void selectSquare(chess::Square sq);

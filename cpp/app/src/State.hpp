@@ -1,10 +1,12 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "Layout.hpp"
 #include "Theme.hpp"
+#include "ReviewSession.hpp"
 #include "chess/Game.hpp"
 
 // A piece sliding between two squares. The game has already applied the move (or undone it),
@@ -63,6 +65,10 @@ struct State {
     int hoverPromo = -1;
 
     int hoverButton = -1;
+
+    // Set while the game review screen is open; it replaces the board screen.
+    std::unique_ptr<ReviewSession> review;
+
     std::string toast;
     double toastAge = 0;
 };

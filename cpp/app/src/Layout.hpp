@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <array>
 
-enum ButtonId { BtnNewGame, BtnUndo, BtnSavePgn, BtnCopyFen, BtnFlip, BtnThemes, BtnCount };
+enum ButtonId { BtnNewGame, BtnUndo, BtnSavePgn, BtnCopyFen, BtnFlip, BtnThemes, BtnReview, BtnCount };
 
 // Screen geometry in renderer pixels. Recomputed every frame, so resizing, rotation and
 // high-DPI changes need no special handling. Wide windows put the panel beside the board,
@@ -59,9 +59,9 @@ inline Layout computeLayout(int W, int H) {
         L.board = {(W - bs) / 2, m, bs, bs};
         L.panel = {m, L.board.y + bs + m, W - 2 * m, std::max(0, H - (L.board.y + bs + m) - m)};
         int bh = static_cast<int>(38 * L.scale);
-        int bw = (L.panel.w - 2 * pad - 2 * gap) / 3;
+        int bw = (L.panel.w - 2 * pad - 3 * gap) / 4;
         for (int i = 0; i < BtnCount; ++i) {
-            int col = i % 3, row = i / 3;
+            int col = i % 4, row = i / 4;
             L.buttons[i] = {L.panel.x + pad + col * (bw + gap), L.panel.y + L.panel.h - pad - (2 - row) * bh - (1 - row) * gap, bw, bh};
         }
     }

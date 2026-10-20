@@ -5,6 +5,7 @@ import 'core/pgn.dart';
 import 'ui/app_settings.dart';
 import 'ui/board_view.dart';
 import 'ui/game_controller.dart';
+import 'ui/review_page.dart';
 import 'ui/save_pgn.dart';
 import 'ui/side_panel.dart';
 
@@ -92,6 +93,12 @@ class _GamePageState extends State<GamePage> {
     controller.say('FEN COPIED TO CLIPBOARD');
   }
 
+  void _openReview() {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ReviewPage(settings: controller.settings, game: controller.game),
+    ));
+  }
+
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     final ctrl = HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed;
@@ -120,7 +127,7 @@ class _GamePageState extends State<GamePage> {
             final landscape = box.maxWidth >= box.maxHeight * 1.1;
             const m = 16.0;
             final board = Center(child: Padding(padding: const EdgeInsets.all(m), child: AspectRatio(aspectRatio: 1, child: BoardView(controller: controller))));
-            final panel = SidePanel(controller: controller, landscape: landscape, onSavePgn: _savePgn, onCopyFen: _copyFen);
+            final panel = SidePanel(controller: controller, landscape: landscape, onSavePgn: _savePgn, onCopyFen: _copyFen, onReview: _openReview);
             if (landscape) {
               final panelWidth = (box.maxWidth * 0.26).clamp(230.0, 360.0);
               return Row(children: [

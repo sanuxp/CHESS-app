@@ -20,9 +20,17 @@ add_executable(chess_app WIN32
     src/Font.cpp
     src/Theme.cpp
     src/Platform.cpp
+    src/ReviewSession.cpp
+    src/ReviewUi.cpp
 )
 set_target_properties(chess_app PROPERTIES OUTPUT_NAME chess)
-target_link_libraries(chess_app PRIVATE chess_core SDL2::SDL2main SDL2::SDL2-static)
+target_link_libraries(chess_app PRIVATE chess_core chess_review SDL2::SDL2main SDL2::SDL2-static)
+
+# The opening database used by the game review, next to the program.
+add_custom_command(TARGET chess_app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:chess_app>/data"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/../../docs/data/openings.tsv"
+            "$<TARGET_FILE_DIR:chess_app>/data/openings.tsv")
 if(WIN32)
     target_sources(chess_app PRIVATE res/chess.rc)  # embeds the app icon
     target_link_libraries(chess_app PRIVATE comdlg32)

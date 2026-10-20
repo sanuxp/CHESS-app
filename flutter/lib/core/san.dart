@@ -65,11 +65,46 @@ String moveToSan(Board before, Move m) {
   return s.toString();
 }
 
+final _sanPattern = RegExp(r'^([NBRQK])?([a-h])?([1-8])?x?([a-h][1-8])(?:=?([NBRQ]))?$');
+
 /// Finds the legal move in [board] that [san] denotes (check/mate marks and !? are ignored).
+/// Returns null when the text matches no legal move, or more than one.
 Move? moveFromSan(Board board, String san) {
-  final wanted = _strip(san);
-  for (final m in generateLegal(board)) {
-    if (_strip(moveToSan(board, m)) == wanted) return m;
+  final text = _strip(san);
+  final legal = generateLegal(board);
+
+  if (text == 'O-O' || text == 'O-O-O') {
+    final flag = text == 'O-O' ? flagCastleKing : flagCastleQueen;
+    for (final m in legal) {
+      if (m.flags & flag != 0) return m;
+    }
+    return null;
   }
-  return null;
+
+  final match = _sanPattern.firstMatch(text);
+  if (match == null) return null;
+  final pieceLetter = match.group(1);
+  final fileHint = match.group(2), rankHint = match.group(3);
+  final to = squareFromName(match.group(4)!);
+  final promoLetter = match.group(5);
+
+  const types = {
+    'N': PieceType.knight,
+    'B': PieceType.bishop,
+    'R': PieceType.rook,
+    'Q': PieceType.queen,
+    'K': PieceType.king,
+  };
+  final type = pieceLetter == null ? PieceType.pawn : types[pieceLetter]!;
+  final promo = promoLetter == null ? PieceType.none : types[promoLetter]!;
+
+  Move? found;
+  for (final m in legal) {
+    if (m.to != to || m.promo != promo || board.pieceAt(m.from).type != type) continue;
+    if (fileHint != null && fileOf(m.from) != fileHint.codeUnitAt(0) - 97) continue;
+    if (rankHint != null && rankOf(m.from) != rankHint.codeUnitAt(0) - 49) continue;
+    if (found != null) return null; // ambiguous
+    found = m;
+  }
+  return found;
 }

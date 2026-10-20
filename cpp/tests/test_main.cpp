@@ -94,7 +94,7 @@ int runBasicTests() {
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        std::cerr << "usage: chess_tests <basic|perft|scenarios|pgn> [dataDir] [maxDepth]\n";
+        std::cerr << "usage: chess_tests <basic|perft|scenarios|pgn|review|import|openings|engine> [dataDir] [maxDepth]\n";
         return 2;
     }
     std::string which = argv[1];
@@ -106,6 +106,10 @@ int main(int argc, char** argv) {
         else if (which == "perft") bad = runPerftTests(dataDir, maxDepth);
         else if (which == "scenarios") bad = runScenarioTests(dataDir);
         else if (which == "pgn") bad = runPgnTests(dataDir);
+        else if (which == "review") bad = runReviewTests(dataDir);
+        else if (which == "import") bad = runImportTests(dataDir);
+        else if (which == "openings") bad = runOpeningTests(dataDir);
+        else if (which == "engine") bad = runEngineTests(dataDir);
         else {
             std::cerr << "unknown test group: " << which << "\n";
             return 2;

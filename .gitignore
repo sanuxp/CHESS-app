@@ -25,3 +25,6 @@ flutter/build/
 docs/logo/source/
 docs/logo/final/
 docs/logo/proposals.html
+
+# Stockfish binary (GPL, downloaded by tools/get_stockfish.ps1, never committed)
+engine/

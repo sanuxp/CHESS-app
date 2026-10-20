@@ -12,6 +12,7 @@ option(CHESS_BUILD_TESTS "Build the rules tests" ON)
 option(CHESS_BUILD_APP "Build the SDL2 desktop app" ON)
 
 add_subdirectory(core)
+add_subdirectory(review)
 
 if(CHESS_BUILD_TESTS)
     enable_testing()

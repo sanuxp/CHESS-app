@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "chess/Game.hpp"
 
@@ -22,8 +23,17 @@ struct PgnHeaders {
     std::string black = "Black";
 };
 
+// Extra information written after a move: a numeric annotation glyph (1 = !, 2 = ?, 3 = !!, 4 = ??, 6 = ?!)
+// and a comment, for example a game review's evaluations.
+struct PlyAnnotation {
+    int nag = 0;
+    std::string comment;
+};
+
 // Full PGN text (seven tag roster, FEN/SetUp tags for custom starts, wrapped movetext, result).
 // Importable by Lichess, Chess.com, Arena, Scid and other engine front ends.
-std::string toPGN(const Game& game, const PgnHeaders& headers = PgnHeaders{});
+// `annotations`, if given, has one entry per move.
+std::string toPGN(const Game& game, const PgnHeaders& headers = PgnHeaders{},
+                  const std::vector<PlyAnnotation>* annotations = nullptr);
 
 }  // namespace chess

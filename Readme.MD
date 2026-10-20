@@ -10,8 +10,8 @@ The same game is built in several technology stacks, one folder each, so they ca
 
 | Folder | Stack | Platforms | Status |
 |---|---|---|---|
-| [`cpp/`](cpp/) | C++17 + SDL2 | Windows now; Linux/macOS likely; Android/iOS prepared | **Playable**, all tests pass |
-| [`flutter/`](flutter/) | Flutter / Dart | Windows and web built; Android/iOS prepared | **Playable**, 73 tests pass |
+| [`cpp/`](cpp/) | C++17 + SDL2 | Windows now; Linux/macOS likely; Android/iOS prepared | **Playable**, game review, 8 test groups pass |
+| [`flutter/`](flutter/) | Flutter / Dart | Windows and web built; Android/iOS prepared | **Playable**, game review (Windows), 164 tests pass |
 | [`godot/`](godot/) | Godot / GDScript | Desktop, Android, iOS | Planned |
 
 ## Project structure
@@ -23,9 +23,15 @@ CHESS/
 │   ├── RULES.md     rules every implementation must follow
 │   ├── UI_SPEC.md   how the game looks and behaves, shared by all stacks
 │   ├── THEMES.md    board colours, piece sets and interface palettes, shared by all stacks
+│   ├── REVIEW.md    how the game review scores and labels moves, shared by all stacks
+│   ├── PLAN_REVIEW.md  plan and progress record of the game review
+│   ├── data/        openings.tsv (Lichess chess-openings, CC0)
+│   ├── screenshots/ pictures of the review screen
 │   ├── logo/        logo artwork, icon SVGs and how the icons are produced
-│   └── testdata/    perft.json, scenarios.json, pgn.json - shared tests every stack must pass
-├── tools/           make_icons.py (app icons from the logo SVG), run_tests.ps1 (all tests, used by the push hook)
+│   └── testdata/    perft.json, scenarios.json, pgn.json, review.json - shared tests every stack must pass
+├── tools/           make_icons.py (app icons), run_tests.ps1 (all tests, used by the push hook),
+│                    get_stockfish.ps1 (downloads Stockfish), gen_review_testdata.py (reference for review.json)
+├── engine/          Stockfish binary after get_stockfish.ps1 (git-ignored)
 ├── .githooks/       pre-push: runs the tests before a push
 ├── cpp/             C++ implementation (rules library, tests, SDL2 app) - see cpp/README.md
 ├── flutter/         Flutter implementation - see flutter/README.md
@@ -78,9 +84,23 @@ git config core.hooksPath .githooks
 Run the same checks by hand with `powershell -ExecutionPolicy Bypass -File toolsun_tests.ps1 [-Cpp] [-Flutter]`
 (about 3 minutes for both). Skip once with `SKIP_PUSH_TESTS=1 git push` or `git push --no-verify`.
 
+## Game review (Stockfish)
+Both apps can **review a game** like chess.com: every move is labelled Brilliant, Great, Best, Excellent, Good, Book,
+Inaccuracy, Mistake, Miss or Blunder, with accuracy per player, an evaluation graph, the opening and the engine's
+preferred move. The analysis is done by [Stockfish](https://stockfishchess.org/) (a separate GPLv3 program, not stored in
+this repository):
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\get_stockfish.ps1    # downloads and verifies engine\stockfish.exe
+```
+Then press **REVIEW** in either app, or open a saved `.pgn`. Phones and the browser cannot launch a separate engine
+program yet, so the review is Windows-only for now. How the labels are decided: [`docs/REVIEW.md`](docs/REVIEW.md).
+
+![Game review in the Flutter app](docs/screenshots/review-landscape.png)
+
 ## Documentation
 - [`docs/PLAN.md`](docs/PLAN.md) - plan and progress record
 - [`docs/RULES.md`](docs/RULES.md) - rules checklist
 - [`docs/UI_SPEC.md`](docs/UI_SPEC.md) - UI and animation spec
 - [`docs/THEMES.md`](docs/THEMES.md) - themes shared by all stacks
+- [`docs/REVIEW.md`](docs/REVIEW.md) - how the game review labels moves; [`docs/PLAN_REVIEW.md`](docs/PLAN_REVIEW.md) - its plan and progress
 - [`docs/logo/README.md`](docs/logo/README.md) - logo, where the icon is used, and the Halloween edition

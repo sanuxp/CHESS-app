@@ -22,4 +22,16 @@ struct SaveResult {
 // dialog is unavailable) it writes into the app's private documents folder and returns that path.
 SaveResult savePgn(SDL_Window* window, const std::string& text);
 
+struct OpenResult {
+    bool opened = false;
+    bool supported = true;
+    std::string text;  // file contents
+    std::string name;  // file name without folders
+    std::string error;
+};
+
+// Lets the user pick a PGN file and reads it. Windows shows the standard Open dialog; other systems report
+// supported = false for now.
+OpenResult openPgn(SDL_Window* window);
+
 }  // namespace platform
