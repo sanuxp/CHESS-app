@@ -13,6 +13,11 @@ cmake-build-*/
 flutter/build/
 .flutter-plugins*
 
+# Python
+__pycache__/
+.pytest_cache/
+*.pyc
+
 # Godot
 .godot/
 *.translation

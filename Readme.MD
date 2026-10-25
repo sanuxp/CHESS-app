@@ -12,6 +12,7 @@ The same game is built in several technology stacks, one folder each, so they ca
 |---|---|---|---|
 | [`cpp/`](cpp/) | C++17 + SDL2 | Windows now; Linux/macOS likely; Android/iOS prepared | **Playable**, game review, 8 test groups pass |
 | [`flutter/`](flutter/) | Flutter / Dart | Windows and web built; Android/iOS prepared | **Playable**, game review (Windows), 164 tests pass |
+| [`python/`](python/) | Python + pygame-ce | Desktop (Windows tested) | **Playable**, game review, 171 tests pass |
 | [`godot/`](godot/) | Godot / GDScript | Desktop, Android, iOS | Planned |
 
 ## Project structure
@@ -35,6 +36,7 @@ CHESS/
 ├── .githooks/       pre-push: runs the tests before a push
 ├── cpp/             C++ implementation (rules library, tests, SDL2 app) - see cpp/README.md
 ├── flutter/         Flutter implementation - see flutter/README.md
+├── python/          Python implementation (pygame-ce) - see python/README.md
 └── godot/           Godot implementation - see godot/README.md
 ```
 Each stack is self-contained: its own rules code, build and tests. They only share the documents and test
@@ -61,6 +63,16 @@ flutter run -d windows     # or -d chrome, or an Android device/emulator
 ```
 Details, folder structure and per-platform notes: [`flutter/README.md`](flutter/README.md).
 
+### Python
+Written for Python 3.9+, tested on 3.11 only.
+```powershell
+cd python
+python -m pip install -r requirements.txt   # pygame-ce and pytest
+python -m pytest -q                         # shared rules data, review logic, UI tests
+python -m chessapp                          # start the game
+```
+Details, folder structure and notes: [`python/README.md`](python/README.md).
+
 ### Godot
 Not implemented yet. Planned: open `godot/` in Godot 4 and press F5, or `godot --path godot`.
 See [`godot/README.md`](godot/README.md).
@@ -77,22 +89,22 @@ Arena or Scid with Stockfish. **Copy FEN** copies the current position if you on
 
 ## Tests before every push
 A git hook runs the existing tests before `git push` and cancels the push if one fails. It only tests what
-changed: C++ for `cpp/`, Flutter for `flutter/`, both when `docs/testdata/` changes. Enable it once per clone:
+changed: C++ for `cpp/`, Flutter for `flutter/`, Python for `python/`, all of them when `docs/testdata/` changes. Enable it once per clone:
 ```
 git config core.hooksPath .githooks
 ```
-Run the same checks by hand with `powershell -ExecutionPolicy Bypass -File toolsun_tests.ps1 [-Cpp] [-Flutter]`
-(about 3 minutes for both). Skip once with `SKIP_PUSH_TESTS=1 git push` or `git push --no-verify`.
+Run the same checks by hand with `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1 [-Cpp] [-Flutter] [-Python]`
+(about 3 minutes for C++ and Flutter). Skip once with `SKIP_PUSH_TESTS=1 git push` or `git push --no-verify`.
 
 ## Game review (Stockfish)
-Both apps can **review a game** like chess.com: every move is labelled Brilliant, Great, Best, Excellent, Good, Book,
+The apps can **review a game** like chess.com: every move is labelled Brilliant, Great, Best, Excellent, Good, Book,
 Inaccuracy, Mistake, Miss or Blunder, with accuracy per player, an evaluation graph, the opening and the engine's
 preferred move. The analysis is done by [Stockfish](https://stockfishchess.org/) (a separate GPLv3 program, not stored in
 this repository):
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\get_stockfish.ps1    # downloads and verifies engine\stockfish.exe
 ```
-Then press **REVIEW** in either app, or open a saved `.pgn`. Phones and the browser cannot launch a separate engine
+Then press **REVIEW** in any app, or open a saved `.pgn`. Phones and the browser cannot launch a separate engine
 program yet, so the review is Windows-only for now. How the labels are decided: [`docs/REVIEW.md`](docs/REVIEW.md).
 
 ![Game review in the Flutter app](docs/screenshots/review-landscape.png)

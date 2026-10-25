@@ -127,6 +127,12 @@ CHESS/
 - [ ] 9.1 Android: SDL2 Android template + Gradle wrapping `chess_core`/`app` via NDK CMake.
 - [ ] 9.2 iOS: generate Xcode project, signing on a Mac.
 
+### Phase 10 - Python implementation (`python/`)
+- [x] 10.1 Rules in `chessapp/core/` (Board, move generation, SAN, Game, PGN export and import); `tests/test_core.py` runs the same `docs/testdata` JSON (perft limited to 200,000 nodes by default, pure Python being slow).
+- [x] 10.2 Review in `chessapp/review/`: labels and accuracy (`review.json`), sacrifice, opening book, UCI engine over a process, analyzer with progress and cancel.
+- [x] 10.3 pygame-ce UI: board, drag and click, promotion picker, animations, panel, Themes, review screen (badge, arrow, graph, move list); interaction logic in `controller.py` without pygame so tests drive it directly.
+- [x] 10.4 `python/README.md`, root `Readme.MD`, `tools/run_tests.ps1 -Python`, pre-push hook for `python/`.
+
 ## 6. Progress log (updated as we go)
 | Date | Phase/Task | Note |
 |---|---|---|
@@ -141,6 +147,7 @@ CHESS/
 | 2026-10-18 | Git | First commits: C++ (`cpp/`), Flutter (`flutter/`) and shared docs/tools. Not committed on purpose: build output, `docs/logo/source/` (2 MB originals) and generated `docs/logo/final/` (see `.gitignore`). |
 | 2026-10-18 | Push hook | `.githooks/pre-push` runs `tools/run_tests.ps1` (C++ build, ctest, app self-test; Flutter pub get, analyze, test) for the stacks that changed, enabled with `git config core.hooksPath .githooks`. No new tests were written: the existing suites already cover rules, UI and PGN. Verified: no-op push skips, a deliberately broken perft value blocks the push, a clean run passes. |
 | 2026-10-18 | Phase 8 | Root `Readme.MD`, `cpp/`, `flutter/`, `godot/` READMEs written. Flutter/Godot READMEs say "not started". |
+| 2026-10-22 | Phase 10 | Python stack added with pygame-ce: `python -m pytest` = 171 tests pass (shared perft up to depth 4, scenarios, SAN/PGN, review.json, UCI parsing, controller, headless UI flows) and a real-Stockfish review of the Opera Game labels `Qb8+` brilliant. Opening-book parsing was the one slow spot (9 s); caching the position after each shared move prefix and checking legality only for SAN candidates brought it to under 1 s. |
 
 ### Deviations from the plan above
 - `toPGN` is a free function in `Pgn.hpp` (`toPGN(game, headers)`), not `Game::toPGN`.

@@ -5,11 +5,12 @@
 # Exits non-zero as soon as a step fails.
 param(
     [switch]$Cpp,
-    [switch]$Flutter
+    [switch]$Flutter,
+    [switch]$Python
 )
 
 $ErrorActionPreference = "Stop"
-if (-not $Cpp -and -not $Flutter) { $Cpp = $true; $Flutter = $true }
+if (-not $Cpp -and -not $Flutter -and -not $Python) { $Cpp = $true; $Flutter = $true; $Python = $true }
 $repo = Split-Path -Parent $PSScriptRoot
 
 function Step([string]$name, [scriptblock]$block) {
@@ -51,6 +52,19 @@ try {
             Step "Flutter pub get" { flutter pub get }
             Step "Flutter analyze" { flutter analyze }
             Step "Flutter tests" { flutter test }
+        } finally {
+            Pop-Location
+        }
+    }
+
+    if ($Python) {
+        if (-not (Get-Command python -ErrorAction SilentlyContinue)) { throw "Python not found on PATH." }
+        Push-Location "$repo\python"
+        try {
+            # Installs pygame-ce and pytest only when they are missing.
+            python -c "import pygame, pytest" 2>$null
+            if ($LASTEXITCODE -ne 0) { Step "Python requirements" { python -m pip install -q -r requirements.txt } }
+            Step "Python tests" { python -m pytest -q }
         } finally {
             Pop-Location
         }
